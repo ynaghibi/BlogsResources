@@ -6,13 +6,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # %%
-from pathlib import Path
 from IPython.display import display
-sLocal_Folder_Path = "C:/.../" #insert your folder name here
-housing = pd.read_csv(Path( sLocal_Folder_Path + "train.csv"))
-housing_test = pd.read_csv(Path( sLocal_Folder_Path + "test.csv"))
+from pathlib import Path
+sLocal_Folder_Path = Path(__file__).parent.resolve()
+train_file_path = sLocal_Folder_Path / "train.csv" # Uses OS-appropriate separator
+predict_file_path = sLocal_Folder_Path / "test.csv"
+housing = pd.read_csv(train_file_path)
+housing_unknown = pd.read_csv(predict_file_path)
 display(housing)
-display(housing_test)
+display(housing_unknown)
 
 # %%
 housing.hist(bins=50, figsize=(30,25))
@@ -38,10 +40,10 @@ def transform_categories_to_ranked(data):
     return data
 
 housing = transform_categories_to_ranked(housing)
-housing_test = transform_categories_to_ranked(housing_test)
+housing_unknown = transform_categories_to_ranked(housing_unknown)
 
 # %%
-display(housing_test.info())
+display(housing_unknown.info())
 display(housing.info())
 
 # %%
@@ -106,6 +108,21 @@ plt.show()
 display(housing["areaquality_product"].describe())
 housing["bedrooms_ratio"].describe()
 
+#%% Test: Cluster years into age_n_clusters groups weighted by sale price
+from sklearn.cluster import KMeans
+age_n_clusters = 4
+age_kmeans = KMeans(n_clusters=age_n_clusters, random_state=42)
+age_strata = age_kmeans.fit_predict(
+    housing[["YearBuilt"]].values,
+    sample_weight=housing["SalePrice"].values
+)
+age_strata = pd.Series(
+    age_strata,
+    index = housing.index,
+    name = "age_category"
+)
+display(age_strata.value_counts())
+
 # %% use strongly correlated features for strata:
 strata_cat_1 = pd.cut(
     housing["areaquality_product"],
@@ -156,29 +173,18 @@ from sklearn.model_selection import train_test_split
 housing_strata_category = housing[sStrataCat].copy()
 housing = housing_original
 strat_train_set, strat_test_set = train_test_split(
-    housing, test_size = 0.15, stratify = housing_strata_category, random_state = 42
+    housing, test_size = 0.05, stratify = housing_strata_category, random_state = 42
 )
 housing = strat_train_set.drop("SalePrice", axis=1) #copies content except "SalePrice"-column
-housing_labels = strat_train_set["SalePrice"].copy() #copies only "SalePrice"-column
+housing_targets = strat_train_set["SalePrice"].copy() #copies only "SalePrice"-column
 
-# %% understand non-numerical categories better:
-housing_cat_columns = housing.select_dtypes(include=[object])
-for column in housing_cat_columns:
-    print(f"Value counts for {column}:")
-    print(housing_cat_columns[column].value_counts())
-    print("-" * 30)
-
-# %%
-from sklearn.preprocessing import OneHotEncoder
-cat_encoder = OneHotEncoder()
-housing_cat = housing.select_dtypes(include=['object', 'category'])
-housing_cat_1hot = cat_encoder.fit_transform(housing_cat)
-housing_cat
-#TODO: we do not need one hot encode like this for future code. it is just a demo
+housing_final_test = strat_test_set.drop("SalePrice", axis=1)
+housing_targets_final_test = strat_test_set["SalePrice"].copy()
 
 # %%
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import make_pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector
@@ -188,10 +194,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 #from sklearn.utils.validation import check_array, check_is_fitted
 
+#%%
 list_trafo_columns = [
     "FullBath", "HalfBath", "BsmtFullBath", "BsmtHalfBath",
     "GrLivArea", "OverallQual",
-    "Ranked_PavedDrive", "Ranked_GarageFinish", "Ranked_GarageQual", "GarageCars", "GarageArea",
+    "Ranked_PavedDrive", "Ranked_GarageFinish", "Ranked_GarageQual", 
+    "Ranked_GarageCond", "GarageCars", "GarageArea",
     "BedroomAbvGr", "GrLivArea",
     "Ranked_HeatingQC", "GrLivArea",
     "KitchenAbvGr", "BedroomAbvGr", "TotRmsAbvGrd",
@@ -203,14 +211,14 @@ inverse_list_trafo_columns = {
 class ColumnFormulaTransformer(BaseEstimator, TransformerMixin):
     def __init__(self,
             sum = [], product = [], denominator = [], altdenominator = [],
-            sumweights = []
+            iTermCutoff = np.inf
         ):
         self.sum = sum
         self.product = product
         self.denominator = denominator
         self.altdenominator = altdenominator
-        self.sumweights = sumweights
-    def fit(self, X, y=None, sample_weight=None):
+        self.iTermCutoff = iTermCutoff
+    def fit(self, X, y=None):
         self.n_features_in_ = X.shape[1]
         return self
     def transform(self, X):
@@ -218,14 +226,14 @@ class ColumnFormulaTransformer(BaseEstimator, TransformerMixin):
         #calculate nominator:
         numerator = np.zeros(X.shape[0])
         for id, col in enumerate(self.sum):
-            if id < len(self.sumweights):
-                weight = self.sumweights[id]
-            else:
-                weight = 1
-            numerator += X[:,inverse_list_trafo_columns[col]] * weight
+            if id >= self.iTermCutoff:
+                break
+            numerator += X[:,inverse_list_trafo_columns[col]]
         if self.product:
             prodnumerator = np.ones(X.shape[0])
-            for col in self.product:
+            for id, col in enumerate(self.product):
+                if id >= self.iTermCutoff:
+                    break
                 prodnumerator *= X[:,inverse_list_trafo_columns[col]]
             numerator += prodnumerator
         #calculate denominator:
@@ -242,25 +250,26 @@ class ColumnFormulaTransformer(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, names=None):
         return ["formula"]
 
+#%%
 def make_pipeline_with_formula(
         sum = [], product = [], 
-        denominator = [], altdenominator = []
+        denominator = [], altdenominator = [],
+        iTermCutoff = np.inf
     ):
     return Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
         (
-            "ratio",
+            "colformula",
             ColumnFormulaTransformer(
                 sum = sum, product = product, 
-                denominator = denominator, altdenominator = altdenominator
+                denominator = denominator, altdenominator = altdenominator,
+                iTermCutoff = iTermCutoff
             )
         ),
         ("scaler", StandardScaler())
     ])
 
-# example code:
-# ColumnFormulaTransformer(product = ["GrLivArea", "OverallQual"])
-
+#%%
 # Reminder:
 # bath_sum = FullBath + HalfBath + BsmtFullBath + BsmtHalfBath
 # areaquality_product = GrLivArea * OverallQual
@@ -282,8 +291,9 @@ ColumnTransformer_TupleList = [
         ), list_trafo_columns
     ),
     ("garage", make_pipeline_with_formula(
-            product = ["Ranked_PavedDrive", "Ranked_GarageFinish",
-                        "Ranked_GarageQual", "GarageCars", "GarageArea"]
+            product = ["GarageCars", "GarageArea", "Ranked_GarageFinish",
+                "Ranked_GarageQual", "Ranked_GarageCond", "Ranked_PavedDrive",
+            ]
         ), list_trafo_columns
     ),
     ("bedroom", make_pipeline_with_formula(
@@ -307,17 +317,12 @@ ColumnTransformer_TupleList = [
         ), list_trafo_columns
     ),
 ]
-#example code:
-#preprocessing = ColumnTransformer(ColumnTransformer_TupleList)
-
-inverse_list_trafo_columns
 
 # %%
 def safe_log(x):
     return np.log(np.where(x <= 0, 1e-10, x))
 log_pipeline = make_pipeline(
     SimpleImputer(strategy = "median"),
-    #FunctionTransformer(np.log, feature_names_out = "one-to-one"),
     FunctionTransformer(safe_log, feature_names_out = "one-to-one"),
     StandardScaler()
 )
@@ -338,6 +343,7 @@ preprocessing = ColumnTransformer(
     ColumnTransformer_TupleList, remainder = default_num_pipeline
 )
 
+#%% Test
 # housing_prepared is for testing purposes only
 housing_prepared = preprocessing.fit_transform(housing)
 df_housing_prepared = pd.DataFrame(
@@ -348,107 +354,51 @@ df_housing_prepared = pd.DataFrame(
 df_housing_prepared
 
 # %%
-from sklearn.tree import DecisionTreeRegressor
-tree_reg = make_pipeline(preprocessing, DecisionTreeRegressor(random_state=42))
-tree_reg.fit(housing, housing_labels)
-from sklearn.model_selection import cross_val_score
-tree_rmses = -cross_val_score(
-    tree_reg,
-    housing,
-    housing_labels,
-    scoring="neg_root_mean_squared_error",
-    cv=10
-)
-
-# %%
-pd.Series(tree_rmses).describe()
-
-# %%
 from sklearn.ensemble import RandomForestRegressor
-forest_reg = make_pipeline(
-    preprocessing,
-    RandomForestRegressor(random_state=42)
-)
-forest_rmses = -cross_val_score(
-    forest_reg, housing, housing_labels,
-    scoring="neg_root_mean_squared_error", cv=10
-)
-
-# %%
-pd.Series(forest_rmses).describe()
-
-# %%
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import GridSearchCV
-full_pipeline = Pipeline([
-    ("preprocessing", preprocessing),
-    ("random_forest", RandomForestRegressor(random_state=42)),
-])
-param_grid = [
-    {
-        'preprocessing__bath__ratio__sumweights': [
-            #["FullBath", "HalfBath", "BsmtFullBath", "BsmtHalfBath"]
-            [1.1, 1.0, 1.0, 1.0],
-            [1.0, 1.0, 1.0, 0.9],
-            [1.0, 1.0, 1.0, 1.0], #default
-            [1.0, .5, .5, .25],
-            [1.0, 1.0, .5, .5],
-            [1.0, 1.0, .0, .0],
-            [1.0, 1.0, 1.0, .5],
-        ],
-        # for preprocessing__bath_kitchen__ratio__sumweights the default is always optimal for some reason
-        # for preprocessing__bath_bedroom__ratio__sumweights it is [1.0, 1.0, 0.5, 0.5]
-        # for preprocessing__bath__ratio__sumweights it is [1.0, 1.0, 1.0, 0.5]
-    },
-]
-grid_search = GridSearchCV(
-    full_pipeline,
-    param_grid,
-    cv=3, scoring='neg_root_mean_squared_error'
-)
-grid_search.fit(housing, housing_labels)
-
-# %%
-grid_search.best_params_
-
-# %%
-cv_rmse_scores = -grid_search.cv_results_['mean_test_score']
-rmse_summary = pd.Series(cv_rmse_scores).describe()
-rmse_summary
-
-# %%
-from sklearn.model_selection import RandomizedSearchCV
 from scipy.stats import uniform, randint
 full_pipeline = Pipeline([
     ("preprocessing", preprocessing),
     ("random_forest", RandomForestRegressor(random_state=42)),
 ])
 
-class CustomSumweightsSampler:
+# %%
+class RandomTermCuttof:
+    def __init__(self, iMin, iMax):
+        self.iMin = iMin
+        self.iMax = iMax
     def rvs(self, random_state=None):
-        #["FullBath", "HalfBath", "BsmtFullBath", "BsmtHalfBath"]
-        return [1.0, uniform(0.0, 1.0).rvs(random_state=random_state), 
-                uniform(0.0, 1.0).rvs(random_state=random_state), 
-                uniform(0.0, 1.0).rvs(random_state=random_state)]
+        return randint(self.iMin, self.iMax + 1).rvs(random_state=random_state)
 
+#%%
+from sklearn.model_selection import RandomizedSearchCV
 param_distribs = {
-    'preprocessing__bath_kitchen__ratio__sumweights': CustomSumweightsSampler(),
-    'preprocessing__bath_bedroom__ratio__sumweights': CustomSumweightsSampler(),
-    'preprocessing__bath__ratio__sumweights': CustomSumweightsSampler(),
+    'preprocessing__garage__colformula__iTermCutoff':
+        RandomTermCuttof(2,6),
+    'preprocessing__bath__colformula__iTermCutoff':
+        RandomTermCuttof(1,4),
+    'preprocessing__bath_kitchen__colformula__iTermCutoff':
+        RandomTermCuttof(1,4),
+    'preprocessing__bath_bedroom__colformula__iTermCutoff':
+        RandomTermCuttof(1,4),
+    #'random_forest__max_features': randint(low=2, high=20)
 }
-
 rnd_search = RandomizedSearchCV(
     full_pipeline,
     param_distributions = param_distribs,
-    n_iter=15,  # Number of parameter settings that are sampled
-    cv=10, #cv = 3 or 5 is more usual, but a higher cv is recommended for small datasets in order to reduce the variance of the estimate
+    n_iter=30,  # Number of parameter settings that are sampled
+    cv=5, #cv = 3 or 5 is more usual, but a higher cv is recommended for small datasets in order to reduce the variance of the estimate
     scoring='neg_root_mean_squared_error',
-    random_state=42
+    random_state=42,
+    return_train_score=True,  # Critical for overfitting check
 )
-rnd_search.fit(housing, housing_labels)
+rnd_search.fit(housing, housing_targets)
 
 # %%
-rnd_search.best_params_
+rnd_search.best_params_ #estimates most important parameters
+
+#%% in combination with return_train_score = True
+results = pd.DataFrame(rnd_search.cv_results_)
+results[['params', 'mean_train_score', 'mean_test_score']]
 
 # %%
 cv_rmse_scores = -rnd_search.cv_results_['mean_test_score']
@@ -456,18 +406,37 @@ rmse_summary = pd.Series(cv_rmse_scores).describe()
 rmse_summary
 
 # %%
+final_model = rnd_search.best_estimator_ # includes preprocessing
+feature_importances = final_model["random_forest"].feature_importances_
+sorted(zip(
+        feature_importances,
+        final_model["preprocessing"].get_feature_names_out()
+    ),
+    reverse=True
+)
+
+# %% Final test before submission!!!
 from sklearn.metrics import root_mean_squared_error
-housing_predicted_prices = rnd_search.predict(housing) #numpy.ndarray
-housing_real_prices = housing_labels #pandas.core.series.Series
-tree_rmse = root_mean_squared_error(housing_labels, housing_predicted_prices)
+housing_predicted_prices = final_model.predict(housing_final_test)
+tree_rmse = root_mean_squared_error(housing_targets_final_test, housing_predicted_prices)
 tree_rmse
 
+# %%
+from scipy import stats
+confidence = 0.95
+squared_errors = (housing_predicted_prices - np.array(housing_targets_final_test)) ** 2
+np.sqrt(stats.t.interval(
+        confidence, len(squared_errors) - 1, loc=squared_errors.mean(),
+        scale=stats.sem(squared_errors)
+    )
+)
+
 # %% getting submission results for Kaggle competition
-housing_predicted_prices = rnd_search.predict(housing_test)
+housing_predicted_prices = final_model.predict(housing_unknown)
 submission = pd.DataFrame({
-    'Id': housing_test['Id'],
+    'Id': housing_unknown['Id'],
     'SalePrice': housing_predicted_prices
 })
-submission.to_csv(sLocal_Folder_Path + '/submission.csv', index=False)
+submission.to_csv(sLocal_Folder_Path / 'submission.csv', index=False)
 
 # %%
