@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+<head>
+<meta name="generator" content="LyX 2.4.2.1" />
+<title>LyX Document</title>
+</head>
+<body dir="auto">
+<div class='standard' id='magicparlabel-1'> </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class='standard' id='magicparlabel-9'> </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class='standard' id='magicparlabel-25'>&#xA0;&#xA0;</div>
+
+<div class='standard' id='magicparlabel-30'><br /></div>
+<div class='toc'><h2 class='tochead section'>Table of Contents</h2>
+<div class='lyxtoc-1'>
+<div class='lyxtoc-2'>
+<a href='#magicparlabel-35' class='tocentry'>1 Quick Info</a>
+</div>
+<div class='lyxtoc-2'>
+<a href='#magicparlabel-52' class='tocentry'>2 Introduction</a>
+</div>
+<div class='lyxtoc-2'>
+<a href='#magicparlabel-67' class='tocentry'>3 Setup and installations</a>
+
+<div class='lyxtoc-3'>
+<a href='#magicparlabel-94' class='tocentry'>3.1 Anaconda</a>
+</div>
+</div>
+<div class='lyxtoc-2'>
+<a href='#magicparlabel-131' class='tocentry'>4 Kaggle competitions</a>
+</div>
+<div class='lyxtoc-2'>
+<a href='#magicparlabel-133' class='tocentry'>References <a href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/submissions">House Prices - Advanced Regression Techniques</a></a>
+</div>
+</div>
+</div>
+
+<section>
+<h2 class='section' id='magicparlabel-35'><span class="section_label">1</span> Quick Info</h2>
+<dl class='description'>
+<dt class="description_label">Audience:</dt>
+<dd class="description_item" id='magicparlabel-36'> This guide is made for beginners with basic knowledge in Python programming. </dd>
+<dt class="description_label">Goal:</dt>
+<dd class="description_item" id='magicparlabel-41'> Introduction to this guide series.</dd>
+<dt class="description_label">Resources:</dt>
+<dd class="description_item" id='magicparlabel-42'> On my GitHub page you can download the whole guide as a PDF or find the links to all parts of this series.
+<dl class='description'>
+<dt class="description_label">PDF:</dt>
+<dd class="description_item" id='magicparlabel-43'> <a href="https://github.com/ynaghibi/BlogsResources/blob/main/Machine_Learning_Blog.pdf">https://github.com/ynaghibi/BlogsResources/blob/main/Machine_Learning_Blog.pdf</a></dd>
+<dt class="description_label">All&#xA0;Parts:</dt>
+<dd class="description_item" id='magicparlabel-44'> <a href="https://github.com/ynaghibi/BlogsResources/blob/main/ML%20Guide%20Links">https://github.com/ynaghibi/BlogsResources/blob/main/ML%20Guide%20Links</a></dd>
+</dl>
+</dd><dt class="description_label">Last&#xA0;Edit:</dt>
+<dd class="description_item" id='magicparlabel-45'> 2025 April 03</dd>
+<dt class="description_label">Credits:</dt>
+<dd class="description_item" id='magicparlabel-46'> This guide is inspired by chapter 2 in "<i>Hands on Machine Learning</i>" by Aurélien Geron [<a href='#LyXCite-HoML'><span class="bib-label">HoML</span></a>]. I am in no way associated with the author himself. This guide does not replicate any parts of the book, and the code presented here is based on publicly available source codes (see Colab). 
+<math xmlns='http://www.w3.org/1998/Math/MathML' display='block'>
+<mtable displaystyle='true' columnalign='right left '>
+ <mtr>
+  <mtd>
+   <mi>e</mi>
+  </mtd>
+  <mtd>
+   <mrow>
+    <mo stretchy='false'>=</mo>
+    <mi>m</mi>
+    <msup>
+     <mi>c</mi>
+     <mn>2</mn>
+    </msup>
+   </mrow>
+  </mtd>
+ </mtr>
+ <mtr>
+  <mtd>
+   <mrow>
+    <mo>&#x222B;</mo>
+    <mo stretchy='false'>+</mo>
+    <munderover>
+     <mo>&#x2211;</mo>
+     <mrow>
+      <mi>i</mi>
+      <mo stretchy='false'>=</mo>
+      <mn>1</mn>
+     </mrow>
+     <mn>3</mn>
+    </munderover>
+    <mi>s</mi>
+    <mi>f</mi>
+    <msub>
+     <mi>d</mi>
+     <mi>d</mi>
+    </msub>
+   </mrow>
+  </mtd>
+  <mtd>
+   <mrow/>
+  </mtd>
+ </mtr>
+</mtable>
+</math>
+</dd>
+
+<dd class="description_item" id='magicparlabel-47'></dd>
+</dl>
+</section>
+<section>
+<h2 class='section' id='magicparlabel-52'><span class="section_label">2</span> Introduction</h2>
+<div class='standard' id='magicparlabel-53'>I want to use this introduction briefly to explain how to <i>learn</i> the basics of machine learning, because it can be quite intimidating for newcomers with little background knowledge. Even without much knowledge about Python, you can learn language on the fly by following this guide, but if you want more preparations, then you should get familiar with the most basic concepts (<b>variables, lists, tuples, dictionaries, functions, loops, if-else-statements</b>). You will also encounter other concepts like <b>lambda functions</b> or <b>classes</b>, but our use cases are rather simple. </div>
+
+<div class='standard' id='magicparlabel-54'>You will probably find out that learning Python modules for machine learning or data scientists almost feels like learning a new language, anyway. </div>
+
+<div class='standard' id='magicparlabel-55'>For now you do not need much mathematical background except very simple <b>school mathematics</b>. Of course more advanced topics require more knowledge (like basic linear algebra or probability theory), but as long as you do not intend to build your own machine learning tools, you can simply use the existing ones without knowing every mathematical or technical detail working under the hood. </div>
+
+<div class='standard' id='magicparlabel-56'>The best way to get a grasp on machine learning is to start with very practical books like "<b><i>Hands on Machine Learning</i></b>" by Aurélien Geron, because they explain working source codes for real world examples. The alternative would be starting from scratch with very basic books, but you may not have time to learn every detail right from the beginning.</div>
+
+<div class='standard' id='magicparlabel-57'>Of course practical books can have a very steep learning curve, but if you use learning techniques like <b>priming</b>, <b>incubation</b>, and the <b>24-hour rule</b> combined with practical coding you can get started with machine learning within just a few days or weeks. This means that you do should not try to memorize everything from the beginning, but rather skim through the working examples, and revisit the details later on, while experimenting with parts of the code. The more you repeat the first-skim-then-revisit-cycle the better you will get without wasting too much time on less important details. </div>
+
+<div class='standard' id='magicparlabel-66'>One way to soften the steep learning curve is to start with crash courses like this one. So without further ado, let us begin. </div>
+</section>
+<section>
+<h2 class='section' id='magicparlabel-67'><span class="section_label">3</span> Setup and installations</h2>
+<div class='standard' id='magicparlabel-68'>In order to run the Python code you only need a webbrowser, if you use Google&#8217;s Colab Btw. Aurélien Geron&#8217;s source code used in his book is also publicly available on Colab, even though it may not be very beginner friendly (see [<a href='#LyXCite-Geron_Colab'><span class="bib-label">GeronColab</span></a>]). </div>
+
+<div class='standard' id='magicparlabel-69'>However, I recommend running everything locally on your computer for the ease of use. We will be using Visual Code, which has a lot of nice comfort functions that are probably not available on Colab. The only downside is that the initial installation takes a bit of effort and about 10 GB space in total. </div>
+<section>
+<h4 class='subsubsection' id='magicparlabel-70'><span class="subsubsection_label">3.0.1</span> Jupyter notebooks</h4>
+<div class='standard' id='magicparlabel-71'>First you can install Visual Code and the Jupyter extension. Jupyter allows you to run certain parts of your code in any order you like. We will refer to these code parts as <b>Jupyter cells</b>. </div>
+
+<div class='standard' id='magicparlabel-72'>All you need to do is create a Python script file with the .py ending, and open it in Visual Code. Each cell is separated by <b><span style='font-size:x-small;'>#%%</span></b> at the beginning of each line. If you want to see how it works, you can experiment with the execution order of the cells in the code below. Once you run a Jupyter cell, an interactive window will open in Visual Code, which shows you the outputs like numbers, arrays, tables or even plots. </div>
+<div class='float-algorithm'><div class='plain_layout' id='magicparlabel-76'><math xmlns='http://www.w3.org/1998/Math/MathML'>
+</math>
+</div>
+<div class='lyx_code'>
+<div class="lyx_code_item" id='magicparlabel-81'><span style='font-size:x-small;'>#%%</span></div>
+<div class="lyx_code_item" id='magicparlabel-82'><span style='font-size:x-small;'>x&#160;=&#160;3</span></div>
+<div class="lyx_code_item" id='magicparlabel-83'><span style='font-size:x-small;'>#%%</span></div>
+<div class="lyx_code_item" id='magicparlabel-84'><span style='font-size:x-small;'>print(x)</span></div>
+<div class="lyx_code_item" id='magicparlabel-85'><span style='font-size:x-small;'>#%%</span></div>
+<div class="lyx_code_item" id='magicparlabel-86'><span style='font-size:x-small;'>del&#160;x</span></div>
+</div>
+<div class='plain_layout' id='magicparlabel-87'><span class='float-caption-Standard float-caption float-caption-standard'>Algorithm 1:  Test</span></div>
+</div>
+
+
+<div class='standard' id='magicparlabel-92'>Note that the <b>interactive window</b> may have a restart button, where all variables are reset, but this does not necessarily apply to module-level attributes like <b><span style='font-size:x-small;'>__file__</span></b>. In this case you have to close the interactive window, before you can safely run the cells from a new script file. Otherwise some problems might occur, where e.g. <b><span style='font-size:x-small;'>__file__</span></b> is the file directory of a previously executed python script instead of the current one. Even restarting Visual Code itself is not a substitute for starting a new interactive window.</div>
+
+<div class='standard' id='magicparlabel-93'>The reason, why Jupyter cells are useful, is that you can debug or modify the code without repeating previously computed time intensive cells. Of course you should be careful with this functionality. Sometimes it is better to restart the whole code from scratch before causing too much chaos. </div>
+</section>
+<section>
+<h3 class='subsection' id='magicparlabel-94'><span class="subsection_label">3.1</span> Anaconda</h3>
+<div class='standard' id='magicparlabel-95'>After installing Jupyter, your Python setup also needs the core modules required for machine learning. Instead of downloading them separately, you can install <b>Anaconda</b>, which is widely used for data science, because it can handle module dependencies well. It should be also compatible with other Python based tasks that are not related to machine learning. </div>
+
+<div class='standard' id='magicparlabel-96'>Since I will not guide you through the Anaconda installation, you can get the instructions elsewhere (e.g. <a href="https://github.com/ageron/handson-ml3/blob/main/INSTALL.md">https://github.com/ageron/handson-ml3/blob/main/INSTALL.md</a>). </div>
+
+<div class='standard' id='magicparlabel-97'>In Visual Code you should be able to able select the Python version in the bottom right bar in order to activate the <b>conda</b>-version of Python. If everything worked well, then the following test code will run without problems.</div>
+<div class='float-algorithm'><div class='plain_layout' id='magicparlabel-101'><math xmlns='http://www.w3.org/1998/Math/MathML'>
+</math>
+</div>
+<div class='lyx_code'>
+<div class="lyx_code_item" id='magicparlabel-106'><span style='font-size:x-small;'>#%%</span></div>
+<div class="lyx_code_item" id='magicparlabel-107'><span style='font-size:x-small;'>import&#160;numpy&#160;as&#160;np</span></div>
+<div class="lyx_code_item" id='magicparlabel-108'><span style='font-size:x-small;'>import&#160;pandas&#160;as&#160;pd</span></div>
+<div class="lyx_code_item" id='magicparlabel-109'><span style='font-size:x-small;'>import&#160;matplotlib.pyplot&#160;as&#160;plt</span></div>
+</div>
+<div class='plain_layout' id='magicparlabel-110'><span class='float-caption-Standard float-caption float-caption-standard'>Algorithm 2:  Test</span></div>
+</div>
+
+
+<div class='standard' id='magicparlabel-115'>However, if there are some issues, you should remove other versions of Python on your computer, remove their environment variables from your system and user paths, and make sure that only the Anaconda paths are there (e.g. C:\Users\YourName\anaconda3). Otherwise Visual Code may not recognize modules that have been already installed for Anaconda. Also make sure to close the current interactive window before starting a new one.</div>
+
+<div class='standard' id='magicparlabel-116'>In case you ever need to install missing modules, you should use the Anaconda Prompt (not the Anaconda PowerShell Prompt or any other command prompt). In addition, it is recommended to use commands starting with "conda install" instead of "pip install". E.g. if you ever need a specialized module like <b><span style='font-size:x-small;'>xgboost</span></b>, then you can install it with  In the command prompt you may also have to confirm the installation by entering <b><span style='font-size:x-small;'>"y"</span></b>.</div>
+<div class='float-algorithm'><div class='plain_layout' id='magicparlabel-120'><math xmlns='http://www.w3.org/1998/Math/MathML'>
+</math>
+</div>
+<div class='lyx_code'>
+<div class="lyx_code_item" id='magicparlabel-125'><span style='font-size:x-small;'>conda&#160;install&#160;-c&#160;conda-forge&#160;xgboost&#160;</span></div>
+</div>
+<div class='plain_layout' id='magicparlabel-126'><span class='float-caption-Standard float-caption float-caption-standard'>Algorithm 3:  Anaconda Prompt</span></div>
+</div>
+
+</section>
+</section>
+<section>
+<h2 class='section' id='magicparlabel-131'><span class="section_label">4</span> Kaggle competitions</h2>
+<div class='standard' id='magicparlabel-132'>One way to practice machine learning is to participate in Kaggle competitions. We will demonstrate this with a competition for beginners: <a href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/submissions">House Prices - Advanced Regression Techniques</a>. There you can download the required data, which in this case is a rather small zip file. </div>
+<h2 class='bibliography'>References</h2>
+<div class='bibliography'>
+<div class='bibliography' id='magicparlabel-133'><a id='LyXCite-Kaggle_Housing_Competition' /><span class='bibitemlabel'>Kaggle Housing</span><a href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/submissions">House Prices - Advanced Regression Techniques</a></div>
+
+<div class='bibliography' id='magicparlabel-134'><a id='LyXCite-Install_Anaconda' /><span class='bibitemlabel'>AnacondaInstall</span><a href="https://github.com/ageron/handson-ml3/blob/main/INSTALL.md">https://github.com/ageron/handson-ml3/blob/main/INSTALL.md</a></div>
+
+<div class='bibliography' id='magicparlabel-135'><a id='LyXCite-Geron_Colab' /><span class='bibitemlabel'>GeronColab</span><a href="https://colab.research.google.com/github/ageron/handson-ml3/blob/main/index.ipynb#scrollTo=-KAqK1NXk8Eu">https://colab.research.google.com/github/ageron/handson-ml3/blob/main/index.ipynb#scrollTo=-KAqK1NXk8Eu</a></div>
+
+<div class='bibliography' id='magicparlabel-136'><a id='LyXCite-KagglData_py' /><span class='bibitemlabel'>1</span><a href="https://github.com/ynaghibi/BlogsResources/blob/main/KagglDataC1.py">https://github.com/ynaghibi/BlogsResources/blob/main/KagglDataC1.py</a></div>
+
+<div class='bibliography' id='magicparlabel-137'><a id='LyXCite-HoML' /><span class='bibitemlabel'>HoML</span>Aurélien Géron (2019). <i>Hands-On Machine Learning with Scikit-Learn, Keras, and Tensorflow: Concepts, Tools, and Techniques to Build Intelligent Systems</i>. O&#8217;Reilly Media</div>
+</div></section>
+</body>
+</html>
